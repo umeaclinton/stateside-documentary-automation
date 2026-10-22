@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environment variables & secrets
+.env
+client_secret*.json
+oauth_token.json
+token.pickle
+credentials.json
+
+# Generated video, audio & temporary media
+output/
+downloads/
+temp/
+*.mp4
+*.mp3
+*.vtt
+*.srt
+*.ass
+*.wav
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor files
+.vscode/
+.idea/
