@@ -16,6 +16,8 @@ client_secret*.json
 oauth_token.json
 token.pickle
 credentials.json
+credentials/
+*.credentials*
 
 # Generated video, audio & temporary media
 output/

@@ -7,25 +7,98 @@ import requests
 logger = logging.getLogger(__name__)
 
 PEXELS_SEARCH_URL = "https://api.pexels.com/videos/search"
+PIXABAY_SEARCH_URL = "https://pixabay.com/api/videos/"
 
 
 def _sanitize_filename(name: str) -> str:
     return re.sub(r'[^\w\-_.]', '_', name)
 
 
-def fetch_broll_clip(
+def fetch_from_pixabay(
     api_key: str,
     query: str,
-    output_dir: Path,
-    min_duration: float = 3.0
+    output_dir: Path
 ) -> Optional[Path]:
     """
-    Searches Pexels API for a vertical portrait video clip matching the query,
-    and downloads it to output_dir.
+    Searches Pixabay API for high quality video matching query and downloads it.
+    Pixabay API keys are instant, free, and have no waitlist.
     """
     if not api_key:
-        logger.warning("PEXELS_API_KEY not set. Skipping B-roll download.")
         return None
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    params = {
+        "key": api_key,
+        "q": query,
+        "video_type": "all",
+        "per_page": 8,
+        "safesearch": "true"
+    }
+
+    try:
+        response = requests.get(PIXABAY_SEARCH_URL, params=params, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        hits = data.get("hits", [])
+
+        if not hits:
+            # Try broader mood query
+            params["q"] = "cinematic mood"
+            fallback_resp = requests.get(PIXABAY_SEARCH_URL, params=params, timeout=15)
+            hits = fallback_resp.json().get("hits", [])
+
+        if not hits:
+            return None
+
+        # Choose the best video hit
+        for hit in hits:
+            hit_id = hit.get("id")
+            videos = hit.get("videos", {})
+            
+            # Prefer 'medium' or 'large' video stream
+            chosen_stream = videos.get("large") or videos.get("medium") or videos.get("small")
+            if not chosen_stream or not chosen_stream.get("url"):
+                continue
+
+            download_url = chosen_stream["url"]
+            file_name = f"pixabay_{hit_id}_{_sanitize_filename(query)[:25]}.mp4"
+            dest_path = output_dir / file_name
+
+            if dest_path.exists() and dest_path.stat().st_size > 50000:
+                logger.info(f"Using cached Pixabay clip: {dest_path.name}")
+                return dest_path
+
+            logger.info(f"Downloading B-roll for '{query}' from Pixabay (ID: {hit_id})...")
+            with requests.get(download_url, stream=True, timeout=30) as r:
+                r.raise_for_status()
+                with open(dest_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=64 * 1024):
+                        if chunk:
+                            f.write(chunk)
+
+            if dest_path.exists() and dest_path.stat().st_size > 50000:
+                logger.info(f"Successfully downloaded Pixabay clip: {dest_path.name}")
+                return dest_path
+
+        return None
+    except Exception as e:
+        logger.error(f"Error fetching from Pixabay: {e}")
+        return None
+
+
+def fetch_from_pexels(
+    api_key: str,
+    query: str,
+    output_dir: Path
+) -> Optional[Path]:
+    """
+    Searches Pexels API for vertical video clips.
+    """
+    if not api_key:
+        return None
+
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     headers = {
         "Authorization": api_key,
@@ -42,62 +115,45 @@ def fetch_broll_clip(
     try:
         response = requests.get(PEXELS_SEARCH_URL, headers=headers, params=params, timeout=15)
         response.raise_for_status()
-        data = response.json()
-        videos = data.get("videos", [])
+        videos = response.json().get("videos", [])
 
         if not videos:
-            # Fallback to broader query if specific query yields nothing
-            logger.info(f"No direct videos for '{query}'. Trying fallback 'dark cinematic'...")
             params["query"] = "dark cinematic mood"
             fallback_resp = requests.get(PEXELS_SEARCH_URL, headers=headers, params=params, timeout=15)
             videos = fallback_resp.json().get("videos", [])
 
         if not videos:
-            logger.warning(f"No Pexels videos found for query '{query}'")
             return None
 
-        # Iterate through videos to find the best portrait HD file
         for video in videos:
             video_id = video.get("id")
             video_files = video.get("video_files", [])
-            
-            # Prefer 1080x1920 (HD portrait) or any portrait file with height > width
             chosen_file = None
-            
-            # Priority 1: Exact 1080x1920
+
+            # Look for 1080x1920 or portrait
             for vf in video_files:
                 if vf.get("width") == 1080 and vf.get("height") == 1920 and vf.get("file_type") == "video/mp4":
                     chosen_file = vf
                     break
 
-            # Priority 2: Any portrait HD file (height > width)
             if not chosen_file:
                 for vf in video_files:
-                    w = vf.get("width", 0) or 0
-                    h = vf.get("height", 0) or 0
-                    if h > w and vf.get("file_type") == "video/mp4":
+                    if (vf.get("height", 0) or 0) > (vf.get("width", 0) or 0) and vf.get("file_type") == "video/mp4":
                         chosen_file = vf
                         break
 
-            # Priority 3: First available mp4
             if not chosen_file and video_files:
                 chosen_file = video_files[0]
 
             if not chosen_file or not chosen_file.get("link"):
                 continue
 
-            download_url = chosen_file["link"]
-            file_name = f"broll_{video_id}_{_sanitize_filename(query)[:30]}.mp4"
-            dest_path = output_dir / file_name
-
-            # Skip download if already cached
+            dest_path = output_dir / f"pexels_{video_id}_{_sanitize_filename(query)[:25]}.mp4"
             if dest_path.exists() and dest_path.stat().st_size > 50000:
-                logger.info(f"Using cached B-roll clip: {dest_path.name}")
                 return dest_path
 
-            # Download video stream
             logger.info(f"Downloading B-roll for '{query}' from Pexels (ID: {video_id})...")
-            with requests.get(download_url, stream=True, timeout=30) as r:
+            with requests.get(chosen_file["link"], stream=True, timeout=30) as r:
                 r.raise_for_status()
                 with open(dest_path, "wb") as f:
                     for chunk in r.iter_content(chunk_size=64 * 1024):
@@ -105,29 +161,49 @@ def fetch_broll_clip(
                             f.write(chunk)
 
             if dest_path.exists() and dest_path.stat().st_size > 50000:
-                logger.info(f"Successfully downloaded clip to: {dest_path}")
                 return dest_path
 
         return None
-
     except Exception as e:
-        logger.error(f"Error fetching B-roll from Pexels: {e}")
+        logger.error(f"Error fetching from Pexels: {e}")
         return None
 
 
+def fetch_broll_clip(
+    pexels_key: str,
+    pixabay_key: str,
+    query: str,
+    output_dir: Path
+) -> Optional[Path]:
+    """
+    Fetches B-roll from Pixabay or Pexels depending on which keys are configured.
+    """
+    # Try Pixabay first if key is present
+    if pixabay_key:
+        clip = fetch_from_pixabay(pixabay_key, query, output_dir)
+        if clip:
+            return clip
+
+    # Try Pexels if key is present
+    if pexels_key:
+        clip = fetch_from_pexels(pexels_key, query, output_dir)
+        if clip:
+            return clip
+
+    return None
+
+
 def fetch_all_broll_clips(
-    api_key: str,
+    pexels_key: str,
+    pixabay_key: str,
     keywords_list: List[str],
     output_dir: Path
 ) -> List[Path]:
-    """
-    Downloads B-roll clips for a list of keyword prompts.
-    """
     output_dir.mkdir(parents=True, exist_ok=True)
     clips: List[Path] = []
 
     for kw in keywords_list:
-        clip_path = fetch_broll_clip(api_key, kw, output_dir)
+        clip_path = fetch_broll_clip(pexels_key, pixabay_key, kw, output_dir)
         if clip_path and clip_path.exists():
             clips.append(clip_path)
 

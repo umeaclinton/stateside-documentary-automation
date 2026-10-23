@@ -5,6 +5,14 @@ import logging
 import sys
 from pathlib import Path
 
+# Force UTF-8 on Windows consoles to prevent cp1252 encoding crashes
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -101,14 +109,15 @@ def run_pipeline(
     logger.info(f"Visual keywords to fetch: {selected_keywords}")
 
     downloaded_clips = []
-    if settings.PEXELS_API_KEY:
+    if settings.PEXELS_API_KEY or settings.PIXABAY_API_KEY:
         downloaded_clips = fetch_all_broll_clips(
-            api_key=settings.PEXELS_API_KEY,
+            pexels_key=settings.PEXELS_API_KEY,
+            pixabay_key=settings.PIXABAY_API_KEY,
             keywords_list=selected_keywords,
             output_dir=clips_dir
         )
     else:
-        logger.warning("PEXELS_API_KEY not configured. Running with fallback canvas.")
+        logger.warning("No B-roll API keys configured. Running with fallback canvas.")
 
     logger.info(f"Acquired {len(downloaded_clips)} B-roll clips.")
 
