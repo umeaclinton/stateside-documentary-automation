@@ -16,6 +16,10 @@ load_dotenv(BASE_DIR / ".env")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "")
+FISH_AUDIO_API_KEY = os.getenv("FISH_AUDIO_API_KEY", "")
+FISH_AUDIO_VOICE_ID = os.getenv("FISH_AUDIO_VOICE_ID", "")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")
 
 # Content Niche & Configuration
 CONTENT_NICHE = os.getenv("CONTENT_NICHE", "Psychology & Human Behavior")

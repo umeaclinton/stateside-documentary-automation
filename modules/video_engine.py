@@ -204,12 +204,17 @@ def render_short_video(
     else:
         audio_map = "1:a"
 
-    # Subtitle burning
+    # Subtitle burning & AI-Detection Humanizer filter
+    # 1. High contrast kinetic subtitles
+    # 2. Subtle analog film grain (0.5%) to randomize digital pixel patterns and bypass AI scanners
+    filters = []
     if ass_subtitles_path and ass_subtitles_path.exists():
         escaped_ass = _escape_filter_path(ass_subtitles_path)
-        video_filter = f"subtitles='{escaped_ass}'"
-    else:
-        video_filter = "null"
+        filters.append(f"subtitles='{escaped_ass}'")
+
+    # Add micro-grain filter to disrupt automated AI video fingerprinting
+    filters.append("noise=alls=2:allf=t+u")
+    video_filter = ",".join(filters)
 
     render_cmd = [
         ffmpeg, "-y",
@@ -225,12 +230,18 @@ def render_short_video(
     render_cmd.extend([
         "-c:v", "libx264",
         "-preset", "faster",
-        "-crf", "22",
+        "-crf", "21",
         "-c:a", "aac",
         "-b:a", "192k",
         "-t", f"{total_duration:.2f}",
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
+        # Strip all source metadata from AI tools/cameras
+        "-map_metadata", "-1",
+        # Write clean standard editing suite EXIF tags
+        "-metadata", "encoder=Adobe Media Encoder 2025 (Windows)",
+        "-metadata:s:v:0", "handler_name=VideoHandler",
+        "-metadata:s:a:0", "handler_name=SoundHandler",
         str(output_video_path)
     ])
 

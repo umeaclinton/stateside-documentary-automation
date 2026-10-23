@@ -76,9 +76,9 @@ def run_pipeline(
     print(f"📜 Scenes to render: {len(script_obj.scenes)}\n")
 
     # -------------------------------------------------------------
-    # Step 2: Synthesize Voiceover & Timestamps via Edge-TTS (100% Free)
+    # Step 2: Synthesize Voiceover & Timestamps (Cloned Voice / Free Neural TTS)
     # -------------------------------------------------------------
-    logger.info(">>> STEP 2/5: Synthesizing neural voiceover via Microsoft Edge-TTS...")
+    logger.info(">>> STEP 2/5: Synthesizing voiceover (Cloned Voice / Neural Voice)...")
     audio_path = run_dir / "voiceover.mp3"
     srt_path = run_dir / "subtitles.srt"
 
@@ -88,7 +88,11 @@ def run_pipeline(
         output_srt_path=srt_path,
         voice=voice,
         rate=settings.VOICE_RATE,
-        pitch=settings.VOICE_PITCH
+        pitch=settings.VOICE_PITCH,
+        fish_audio_api_key=settings.FISH_AUDIO_API_KEY,
+        fish_audio_voice_id=settings.FISH_AUDIO_VOICE_ID,
+        elevenlabs_api_key=settings.ELEVENLABS_API_KEY,
+        elevenlabs_voice_id=settings.ELEVENLABS_VOICE_ID
     )
 
     # -------------------------------------------------------------
