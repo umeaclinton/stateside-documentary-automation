@@ -137,7 +137,7 @@ def render_short_video(
         cmd = [
             ffmpeg, "-y",
             "-ss", "0",
-            "-t", str(clip_duration),
+            "-t", str(clip_duration + 0.5),
             "-i", str(clip),
             "-vf", vf_filter,
             "-an",
@@ -157,19 +157,52 @@ def render_short_video(
         create_solid_color_background(fallback_clip, duration=total_duration + 5)
         processed_clips = [fallback_clip]
 
-    # Step 2: Build concat list file to loop clips until total duration is satisfied
+    # Step 2: Intelligent Non-Repetitive Sequencing Algorithm
+    # Rule 1: No sequential loops (1,2,3, 1,2,3). Shuffled and randomized.
+    # Rule 2: Maximum usage per clip = 2 times total across the entire video.
+    # Rule 3: Never place the same clip consecutively.
+    # Rule 4: If enough clips exist, every single cut is 100% unique!
+    import random
+    random.seed()
+
+    cuts_needed = int((total_duration // clip_duration) + 3)
+    usage_counts = {c: 0 for c in processed_clips}
+    sequenced_clips = []
+    available_pool = list(processed_clips)
+    random.shuffle(available_pool)
+
+    # First pass: use every available clip once in randomized order
+    for c in available_pool:
+        if len(sequenced_clips) >= cuts_needed:
+            break
+        sequenced_clips.append(c)
+        usage_counts[c] += 1
+
+    # Second pass: if video is longer than clip pool, fill remaining cuts (max 2 uses per clip)
+    if len(sequenced_clips) < cuts_needed:
+        # Eligible clips are those used strictly less than 2 times
+        eligible = [c for c in processed_clips if usage_counts[c] < 2]
+        random.shuffle(eligible)
+        
+        while len(sequenced_clips) < cuts_needed and eligible:
+            candidate = eligible.pop(0)
+            # Avoid putting same clip back-to-back
+            if sequenced_clips and sequenced_clips[-1] == candidate and len(eligible) > 0:
+                eligible.append(candidate)
+                candidate = eligible.pop(0)
+
+            sequenced_clips.append(candidate)
+            usage_counts[candidate] += 1
+
+    # Write concat list file
     concat_list_file = temp_dir / "concat_list.txt"
     lines = []
-    accumulated_dur = 0.0
-    idx = 0
-    while accumulated_dur < (total_duration + 5.0):
-        clip = processed_clips[idx % len(processed_clips)]
+    for clip in sequenced_clips:
         escaped_clip_path = str(clip.resolve()).replace("\\", "/")
         lines.append(f"file '{escaped_clip_path}'")
-        accumulated_dur += clip_duration
-        idx += 1
 
     concat_list_file.write_text("\n".join(lines), encoding="utf-8")
+    logger.info(f"Assembled dynamic B-roll sequence: {len(sequenced_clips)} cuts ({len(processed_clips)} unique clips used)")
 
     # Step 3: Concatenate video stream
     concatenated_video = temp_dir / "stitched_broll.mp4"

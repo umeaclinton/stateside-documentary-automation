@@ -108,17 +108,16 @@ def run_pipeline(
             if kw not in all_keywords:
                 all_keywords.append(kw)
 
-    # Limit to top 5-7 keyword clips
-    selected_keywords = all_keywords[:7] if all_keywords else ["stoic moody dark portrait", "mind focus contemplation"]
-    logger.info(f"Visual keywords to fetch: {selected_keywords}")
+    logger.info(f"Visual keywords to fetch ({len(all_keywords)} queries): {all_keywords}")
 
     downloaded_clips = []
     if settings.PEXELS_API_KEY or settings.PIXABAY_API_KEY:
         downloaded_clips = fetch_all_broll_clips(
             pexels_key=settings.PEXELS_API_KEY,
             pixabay_key=settings.PIXABAY_API_KEY,
-            keywords_list=selected_keywords,
-            output_dir=clips_dir
+            keywords_list=all_keywords,
+            output_dir=clips_dir,
+            target_min_clips=14
         )
     else:
         logger.warning("No B-roll API keys configured. Running with fallback canvas.")
