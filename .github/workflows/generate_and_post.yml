@@ -10,9 +10,9 @@ on:
         required: false
         default: 'auto'
       scenes:
-        description: 'Number of scenes'
+        description: 'Number of scenes (default 80 for 7-10 min documentary)'
         required: false
-        default: '55'
+        default: '80'
       upload_to_youtube:
         description: 'Publish video directly to YouTube'
         type: boolean
@@ -73,7 +73,7 @@ jobs:
           CHANNEL_HANDLE: "@50kstateside"
         run: |
           TOPIC="${{ github.event.inputs.topic || github.event.client_payload.topic || 'auto' }}"
-          SCENES="${{ github.event.inputs.scenes || github.event.client_payload.scenes || '55' }}"
+          SCENES="${{ github.event.inputs.scenes || github.event.client_payload.scenes || '80' }}"
           CMD="python essay_stuff/generate_essay.py --topic \"$TOPIC\" --scenes \"$SCENES\""
           
           if [ -f "oauth_token.json" ] && [ "${{ github.event.inputs.upload_to_youtube }}" != "false" ]; then

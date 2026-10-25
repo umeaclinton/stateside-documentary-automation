@@ -127,7 +127,7 @@ def format_timestamp(seconds: float) -> str:
 
 def generate_full_video_essay(
     topic: str,
-    target_scenes: int = 55,
+    target_scenes: int = 80,
     skip_script: bool = False,
     allow_elevenlabs: bool = True,
     upload: bool = False

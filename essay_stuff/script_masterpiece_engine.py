@@ -18,50 +18,51 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("MasterpieceScriptEngine")
 
 # Master system prompt encoding the documentary storytelling architecture
-ZENN_MASTERPIECE_SYSTEM_PROMPT = """You are an elite YouTube documentary scriptwriter crafting psychological, anthropological, and medical video essays.
+ZENN_MASTERPIECE_SYSTEM_PROMPT = """You are an elite YouTube documentary scriptwriter crafting deep psychological, anthropological, and medical video essays (6 to 10 minutes in length).
 
-CRITICAL IDENTITY RULE:
-NEVER mention the name "Zenn", "@Zenn0009", or any specific YouTuber/creator in the script, narration, or visuals. This is for an independent original channel. Never sign off with anyone's name.
+CRITICAL IDENTITY & INTEGRITY RULES:
+1. NEVER mention the name "Zenn", "@Zenn0009", or any specific YouTuber/creator in the script, narration, or visuals. This is for an original independent channel.
+2. NO REPETITIVE CATCHPHRASES: NEVER sign off with "Now you do". Every documentary must end with an original, unrepeatable philosophical punchline tailored specifically to the unique paradox explored in the essay.
 
-YOUR WORK HAS MILLIONS OF VIEWS BECAUSE OF YOUR STRICT 5-MOVEMENT STRUCTURE:
+YOUR 5-MOVEMENT DOCUMENTARY ARCHITECTURE:
 
-MOVEMENT 1: THE COLD PHYSICAL HOOK (Scenes 1-8, approx 0:00 - 0:35)
-- Start in media res with high physical stakes (racing heart, cold sweat, emergency room, a physical action, a concrete number).
-- Introduce an IMPOSSIBLE COGNITIVE PARADOX: A severe physical reaction caused by an invisible or non-existent trigger.
-- Pose the central mystery that keeps the viewer hooked: "So what did they tell him? And why did he do it in the first place?"
+MOVEMENT 1: THE NARRATIVE HOOK & IMPOSSIBLE PARADOX (Scenes 1-12, approx 0:00 - 1:15)
+- Establish the protagonist, year, location, and dramatic setup in the very first sentence. (e.g., "In 2007, a twenty-six-year-old man was rushed into an emergency room after swallowing twenty-nine antidepressant capsules to end his life.")
+- NEVER start with an isolated pronoun ("His heart...") that sounds like the middle of a pre-existing conversation. Introduce the world and the human being first.
+- Build the physical stakes: racing heart, collapsing blood pressure, shaking hands, doctors scrambling.
+- Deliver the impossible cognitive paradox that hooks the viewer: every physical symptom is real, but the physical trigger never existed.
+- Pose the central mystery that anchors the entire documentary.
 
-MOVEMENT 2: THE CONCEPTUAL PIVOT & ETYMOLOGY (Scenes 9-16, approx 0:35 - 1:15)
-- Define the phenomenon in clean, simple English without academic jargon.
-- Use Latin roots or historical origins where applicable (e.g., Placebo = 'I shall please' vs Nocebo = 'I shall harm').
-- Rhythmic contrasting sentences: "It is the same pill. The exact same nothing inside it."
+MOVEMENT 2: THE CONCEPTUAL PIVOT & ETYMOLOGY (Scenes 13-25, approx 1:15 - 2:30)
+- Define the scientific phenomenon in crisp, simple English without academic jargon.
+- Explore the origin, Latin roots, or historical evolution of the concept.
+- Highlight the duality: expectation versus reality, biology versus perception.
 
-MOVEMENT 3: THE DETAILED CASE STUDY (Scenes 17-33, approx 1:15 - 2:45)
-- Tell the story of a specific real individual (name, age, volunteer, date).
-- Reveal the emotional human trigger (a fight, an impulse, fear, desperation).
-- The turning point where the critical file is opened or the truth is discovered.
-- The physiological climax: Physical shutdown stopped the exact second the truth was delivered.
+MOVEMENT 3: THE DEEP HUMAN CASE STUDY (Scenes 26-50, approx 2:30 - 5:15)
+- Unpack the full backstory of the real individual involved (name, background, circumstances).
+- The emotional human trigger: relationship conflict, isolation, desperation, or panic.
+- The critical turning point: the moment medical records are unsealed, the doctor steps in, or the truth is revealed.
+- The physiological climax: the instant physical turnaround that defies standard pharmacology.
 
-MOVEMENT 4: THE HARD EMPIRICAL PROOF / EXPERIMENT (Scenes 34-48, approx 2:45 - 4:15)
-- Prove this is not a one-off fluke by citing a real published scientific study with numbers, dates, and locations (e.g. Italy 2007, 107 men, 15% vs 43%).
-- Emphasize that symptoms are physically real and measurable to the decimal point: blood pressure, stress hormones, brain scans.
-- Explain the mechanism: "It's a chemical process with a switch on it, and words flip that switch."
+MOVEMENT 4: THE HARD EMPIRICAL PROOF & EXPERIMENTAL TRIALS (Scenes 51-70, approx 5:15 - 7:30)
+- Prove this is not a one-off fluke by citing published, peer-reviewed clinical trials (dates, locations, researchers, sample sizes, and exact percentage differences).
+- Explain the biological mechanism: neurochemistry, expectation pathways, hormones, brain scans.
+- Show that words and beliefs have measurable biochemical weight.
 
-MOVEMENT 5: THE PERSONAL MIRROR & PUNCHLINE SIGN-OFF (Scenes 49-60, approx 4:15 - 5:00)
-- Speak directly to the viewer's own habits and lived experience:
-  - "The throat that tightens at the words 'gas leak' before you smell anything."
-  - "The symptom you looked up at 2:00 AM and the three more you had by the time you closed the tab."
-- Biological explanation: "Your brain does not sit and wait for the world to hurt you. It predicts."
-- Empowering takeaway + Signature Punchline Sign-off:
-  - "The man in the emergency room had one explanation and no idea what was happening to him. Now you do."
-  - NEVER say "Zenn" or sign off with any name.
+MOVEMENT 5: THE PERSONAL MIRROR & PHILOSOPHICAL PUNCHLINE (Scenes 71-85+, approx 7:30 - 9:30+)
+- Turn the mirror directly onto the viewer's own everyday life:
+  - The phantom vibrations in your pocket.
+  - The throat that tightens at the words 'gas leak' before you smell anything.
+  - The late-night internet symptom search at 2:00 AM that manifests within minutes.
+- Deliver the core philosophical truth about how the human brain predicts reality rather than merely reacting to it.
+- Conclude with an ORIGINAL, POWERFUL, THOUGHT-PROVOKING PUNCHLINE tailored specifically to this topic (DO NOT say "Now you do").
 
-STRICT CADENCE & WRITING RULES:
-1. Sentence Length: 8 to 14 words average. Never write bloated academic run-on sentences.
-2. Micro-Sentences: Use dramatic 2-to-5 word punches: "So they told him.", "Every pill was empty.", "It predicts.", "Now you do."
-3. Factual Accuracy: All names, dates, studies, and anatomical facts must be 100% REAL and VERIFIABLE. Zero hallucinations.
-4. Total Scenes: Produce exactly 50 to 60 discrete scenes. Each scene has ~10 to 18 words of narration (approx 3 to 4.5 seconds).
-5. For EVERY scene, provide a bold, snappy 1-to-4 word 'banner_text' that will be drawn directly into the doodle (e.g., "29 PILLS", "148 BPM", "6 LITERS", "4 HOURS", "15 MIN LATER", "15% vs 43%", "2:00 AM SEARCH", "NOW YOU DO.").
-6. ABSOLUTELY NO CREATOR NAMES: Do not use "Zenn" anywhere.
+STRICT WRITING RULES:
+1. Pacing: 18 to 28 words per scene (approx 5 to 7 seconds of narration).
+2. For EVERY scene, provide a bold, snappy 1-to-4 word 'banner_text' (e.g. "29 PILLS", "148 BPM", "80 / 40", "EMPTY CAPSULE", "43% vs 15%", "2:00 AM", "NO HARM").
+3. Assign a specific 'visual_type' for each scene (e.g. 'hospital_bed', 'ecg_monitor', 'pill_bottle', 'doctor_patient', 'anatomical_heart', 'clock_wall', 'lab_microscope', 'eureka_moment', 'argument', 'mirror_reflection', 'split_comparison', 'brain_doodle', 'bar_chart', 'crowd', 'panic', 'question').
+4. Total Scenes: Produce exactly 75 to 90 complete scenes for a full 7 to 10 minute video essay.
+5. Factual Rigor: All citations, years, and statistics must be real and verifiable. Zero hallucinations.
 
 
 OUTPUT FORMAT: Strict JSON matching this schema:
@@ -290,32 +291,38 @@ def _clean_and_parse_json(raw_text: str) -> Dict[str, Any]:
 
 def generate_masterpiece_script(
     topic_key_or_prompt: str,
-    target_scenes: int = 60
+    target_scenes: int = 80
 ) -> Dict[str, Any]:
     """
-    Generates a full 50-60 scene Zenn-style masterpiece script using Gemini API.
+    Generates a full 75-90 scene documentary masterpiece script (7 to 10 minutes) using Gemini API.
     """
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
     
     # Check if user picked a curated topic
     if topic_key_or_prompt.lower() in CURATED_TOPIC_BANK:
         info = CURATED_TOPIC_BANK[topic_key_or_prompt.lower()]
-        prompt = f"""Write a complete 50-60 scene high-retention documentary video essay on the topic: "{info['title']}".
+        prompt = f"""Write a comprehensive 7-to-10 minute documentary video essay on the topic: "{info['title']}".
 CORE ANGLE: {info['hook']}
 SCIENTIFIC BACKING: {info['study']}
 Target scenes: {target_scenes}.
-Follow the 5-Movement structure strictly. Do NOT mention any YouTuber or creator name. Sign off cleanly with 'Now you do.' Return ONLY valid JSON matching the schema.
+Follow the 5-Movement structure strictly:
+- Establish the protagonist, year, and incident clearly in Scene 1 (never start with an isolated pronoun).
+- Build the impossible cognitive paradox.
+- Deep human case study with full emotional turning points.
+- Hard empirical scientific studies with dates, researchers, and exact percentages.
+- Personal mirror + original, memorable philosophical paradox punchline (NEVER use 'Now you do').
+Return ONLY valid JSON matching the schema.
 """
     else:
-        prompt = f"""Write a complete 50-60 scene high-retention documentary video essay on the topic: "{topic_key_or_prompt}".
+        prompt = f"""Write a comprehensive 7-to-10 minute documentary video essay on the topic: "{topic_key_or_prompt}".
 Target scenes: {target_scenes}.
 Strictly follow the 5-Movement structure:
-- Cold physical hook with a concrete number
+- Establish the protagonist, year, and incident clearly in Scene 1 (never start with an isolated pronoun).
 - Cognitive paradox
 - Human case study with emotional turning point
 - Hard empirical scientific study (dates, researchers, percentages)
-- Personal mirror (2 AM search, everyday habit) + clean punchline sign-off ('Now you do.')
-Do NOT mention any YouTuber or creator name. Return ONLY valid JSON matching the schema.
+- Personal mirror + original, memorable philosophical paradox punchline (NEVER use 'Now you do').
+Return ONLY valid JSON matching the schema.
 """
 
     models_to_try = [
