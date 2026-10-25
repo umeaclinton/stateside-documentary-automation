@@ -341,7 +341,7 @@ def get_or_discover_next_topic(history_file: Optional[Path] = None) -> str:
     with verifiable peer-reviewed citations.
     """
     if history_file is None:
-        history_file = BASE_DIR / "output" / "posted_history.json"
+        history_file = BASE_DIR / "data" / "posted_history.json"
         
     posted = []
     if history_file.exists():
@@ -399,7 +399,7 @@ def log_topic_produced(topic_key: str, history_file: Optional[Path] = None):
     Records a completed topic to prevent duplicate posting.
     """
     if history_file is None:
-        history_file = BASE_DIR / "output" / "posted_history.json"
+        history_file = BASE_DIR / "data" / "posted_history.json"
     history_file.parent.mkdir(parents=True, exist_ok=True)
     posted = []
     if history_file.exists():
