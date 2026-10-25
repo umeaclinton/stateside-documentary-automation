@@ -162,6 +162,17 @@ def generate_full_video_essay(
     if not scenes:
         raise ValueError("Script contains no scenes.")
         
+    # Normalize scenes to guarantee required fields exist across any LLM schema variation
+    for idx, s in enumerate(scenes):
+        if "scene_id" not in s or not isinstance(s.get("scene_id"), int):
+            s["scene_id"] = s.get("id") or s.get("scene_number") or (idx + 1)
+        if "narration" not in s:
+            s["narration"] = s.get("text") or s.get("script") or s.get("dialogue") or ""
+        if "banner_text" not in s:
+            s["banner_text"] = s.get("banner") or s.get("text_overlay") or f"PART {idx + 1}"
+        if "visual_description" not in s:
+            s["visual_description"] = s.get("visual_prompt") or s.get("description") or ""
+
     audio_dir = work_dir / "audio"
     frames_dir = work_dir / "frames"
     clips_dir = work_dir / "clips"
@@ -177,9 +188,9 @@ def generate_full_video_essay(
     cumulative_time = 0.0
     timestamps_chapters = []
     
-    for s in scenes:
-        sid = s["scene_id"]
-        narration = s["narration"]
+    for idx, s in enumerate(scenes):
+        sid = s.get("scene_id", idx + 1)
+        narration = s.get("narration", "")
         aud_file = audio_dir / f"scene_{sid:03d}.mp3"
         
         synthesize_scene_voice(narration, aud_file, use_elevenlabs=allow_elevenlabs)
@@ -199,8 +210,8 @@ def generate_full_video_essay(
     # -------------------------------------------------------------------------
     print(f"\n[Step 3/5] Rendering {len(scenes)} rock-solid 1080p hand-drawn doodle frames...")
     frame_files = []
-    for s in scenes:
-        sid = s["scene_id"]
+    for idx, s in enumerate(scenes):
+        sid = s.get("scene_id", idx + 1)
         frame_file = frames_dir / f"scene_{sid:03d}.png"
         if not frame_file.exists():
             render_masterpiece_frame(s, frame_file)
@@ -214,7 +225,7 @@ def generate_full_video_essay(
     print(f"\n[Step 4/5] Compiling {len(scenes)} video clips with FFmpeg...")
     clip_files = []
     for idx, s in enumerate(scenes):
-        sid = s["scene_id"]
+        sid = s.get("scene_id", idx + 1)
         frame_file = frame_files[idx]
         aud_file = audio_dir / f"scene_{sid:03d}.mp3"
         clip_file = clips_dir / f"clip_{sid:03d}.mp4"
