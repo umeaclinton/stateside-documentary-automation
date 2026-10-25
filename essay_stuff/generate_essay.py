@@ -54,6 +54,7 @@ FFPROBE = _resolve_binary(
 )
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", getattr(settings, "ELEVENLABS_API_KEY", ""))
 LOCKED_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb" # George (ElevenLabs premade narrator)
+_ELEVENLABS_QUOTA_EXHAUSTED = False
 
 def slugify(text: str) -> str:
     text = text.lower()
@@ -70,12 +71,13 @@ def synthesize_scene_voice(text: str, out_path: Path, use_elevenlabs: bool = Tru
     """
     Synthesizes speech using ElevenLabs George, falling back seamlessly to Edge-TTS.
     """
+    global _ELEVENLABS_QUOTA_EXHAUSTED
     if out_path.exists() and out_path.stat().st_size > 500:
         return True # Cached
         
     out_path.parent.mkdir(parents=True, exist_ok=True)
     
-    if use_elevenlabs and ELEVENLABS_API_KEY:
+    if use_elevenlabs and ELEVENLABS_API_KEY and not _ELEVENLABS_QUOTA_EXHAUSTED:
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{LOCKED_VOICE_ID}"
         headers = {
             "xi-api-key": ELEVENLABS_API_KEY,
@@ -92,13 +94,17 @@ def synthesize_scene_voice(text: str, out_path: Path, use_elevenlabs: bool = Tru
             }
         }
         try:
-            r = requests.post(url, json=payload, headers=headers, timeout=25)
+            r = requests.post(url, json=payload, headers=headers, timeout=15)
             if r.status_code == 200:
                 with open(out_path, "wb") as f:
                     f.write(r.content)
                 return True
             else:
-                print(f"    [ElevenLabs Warning] HTTP {r.status_code}: {r.text[:120]}. Falling back to Edge-TTS.")
+                if "quota_exceeded" in r.text or r.status_code in (401, 429):
+                    _ELEVENLABS_QUOTA_EXHAUSTED = True
+                    print(f"    [ElevenLabs Quota Exceeded] Switching to Studio Edge-TTS for all remaining scenes.")
+                else:
+                    print(f"    [ElevenLabs Warning] HTTP {r.status_code}: {r.text[:120]}. Falling back to Edge-TTS.")
         except Exception as e:
             print(f"    [ElevenLabs Warning] Exception: {e}. Falling back to Edge-TTS.")
             

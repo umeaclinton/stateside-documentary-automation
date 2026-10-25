@@ -54,6 +54,11 @@ def get_authenticated_service(
                     f"Client secrets file not found: {client_secrets_file}.\n"
                     "Please download it from Google Cloud Console (OAuth 2.0 Client ID) to enable uploads."
                 )
+            if os.getenv("CI") or os.getenv("GITHUB_ACTIONS"):
+                raise RuntimeError(
+                    "Cannot initiate interactive browser OAuth flow in headless CI runner. "
+                    "Please ensure YOUTUBE_OAUTH_TOKEN_JSON secret is set with a valid refresh token."
+                )
             logger.info("Initiating browser authentication flow for YouTube...")
             flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, SCOPES)
             creds = flow.run_local_server(port=0)

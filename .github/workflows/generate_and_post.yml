@@ -21,6 +21,7 @@ on:
 jobs:
   produce-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: write
 
