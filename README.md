@@ -1,128 +1,83 @@
-# 🎬 Autonomous Zero-Cost YouTube Shorts Pipeline
+# 🎬 Zenn-Style Documentary Video Essay Engine
 
-An end-to-end, 100% free automated pipeline for generating, editing, captioning, and publishing viral, evergreen YouTube Shorts on autopilot.
-
-No expensive SaaS subscriptions ($0 vs $50–$100/mo on FacelessReels / InVideo). No manual video editing. No high GPU requirements.
+An autonomous, zero-cost production pipeline for generating, illustrating, voicing, and compiling high-retention psychological, scientific, and historical documentary video essays modeled after the exact narrative and visual aesthetic of **Zenn (@Zenn0009)**.
 
 ---
 
-## 🏗️ Architecture & Free Stack
+## 🏛️ Narrative Architecture: The 5-Movement Structure
+
+Every video follows Zenn's signature storytelling formula:
+
+1. **Movement 1: The Cold Physical Hook (0:00 - 0:35)**
+   - Starts *in media res* with high physical stakes (racing heart, cold sweat, emergency room, a physical action, a concrete number).
+   - Introduces an impossible cognitive paradox: a severe physical reaction caused by an invisible trigger.
+2. **Movement 2: The Conceptual Pivot & Etymology (0:35 - 1:15)**
+   - Jargon-free definition in plain English (e.g. Latin roots: *Placebo* = "I shall please" vs *Nocebo* = "I shall harm").
+3. **Movement 3: The Detailed Human Case Study (1:15 - 2:45)**
+   - A specific real individual's story (name, age, volunteer, date) with emotional turning points.
+4. **Movement 4: Hard Empirical Proof & Peer-Reviewed Science (2:45 - 4:15)**
+   - Hard scientific backing citing published studies (*Nature*, *PNAS*, *General Hospital Psychiatry*) with real dates, sample sizes, and percentages.
+5. **Movement 5: The Personal Mirror & Punchline Sign-Off (4:15 - End)**
+   - Connects directly to the viewer's everyday habits (2 AM Google search, tight throat).
+   - Signature punchline: *"The man in the emergency room had one explanation and no idea what was happening to him. Now you do."*
+
+---
+
+## 🎨 Visual & Auditory Standards
+
+- **Visuals:** Pure white (`#FFFFFF`) 1920×1080 Full HD canvas.
+- **Linework:** Hand-drawn wobbly ink outlines (thickness: 5–8px) with expressive stickman doodles.
+- **Stability:** **100% rock-solid static frames.** No subpixel digital zooms or jitter.
+- **Pacing:** Rapid visual cuts every **2.0 to 3.5 seconds** (50–60 scenes per video).
+- **Integrated Text Banners:** High-impact bold callouts drawn directly into each doodle (e.g. `29 PILLS`, `148 BPM`, `15 MIN LATER`, `NOW YOU DO.`).
+- **Narrator:** ElevenLabs **George** (`JBFqnCBsd6RMkjVDRZzb`) using `eleven_turbo_v2_5`, with seamless automatic fallback to `Edge-TTS` (`en-US-ChristopherNeural`).
+- **Sound Design:** Layered with a 55Hz + 110Hz sub-bass atmospheric tension drone at -24dB (`weight: 0.10`).
+
+---
+
+## 🚀 Quick Start & CLI Usage
+
+### Generate a Video Essay
+```bash
+# Run with a curated topic:
+.\.venv\Scripts\python.exe essay_stuff\generate_essay.py --topic slotow_effect
+
+# Or generate with any custom prompt:
+.\.venv\Scripts\python.exe essay_stuff\generate_essay.py --topic "Why You Wake Up at 3:00 AM" --scenes 55
+```
+
+### Curated Topic Library
+- `slotow_effect` — Why adolescent elephants went berserk (*Slotow 2000, Nature*)
+- `nocebo` — How words can poison the body (*Mondaini 2007, JSM*)
+- `ancient_night` — What humans did in 12 hours of total darkness (*Wiessner 2014, PNAS*)
+- `minnesota_starvation` — The psychology of starvation (*Keys 1944*)
+- `quietest_room` — Acoustic deprivation at minus 9.4 decibels
+- `own_voice` — The acoustics of bone conduction
+- `uncanny_valley` — Evolutionary dread mechanisms
+- `split_brain` — Two minds inside one skull (*Sperry Nobel Prize*)
+
+---
+
+## 📁 Workspace Directory Structure
 
 ```text
-       [ GitHub Actions (Free Cron Trigger: Daily 2:00 PM UTC) ]
-                                  │
-                                  ▼
-      [ 1. SCRIPT GENERATION: Google Gemini API (100% Free) ]
-          Writes high-retention hook, 3 rapid body points,
-          psychological loop outro, and B-roll queries as structured JSON
-                                  │
-                                  ▼
-     [ 2. NEURAL VOICEOVER: Microsoft Edge-TTS (100% Free) ]
-          Generates ultra-realistic human speech (e.g. Christopher / Jenny)
-          + word-accurate timestamp cues without token limits
-                                  │
-                                  ▼
-     [ 3. B-ROLL FOOTAGE: Pexels Video API (100% Free) ]
-          Downloads cinematic vertical 1080x1920 HD portrait clips
-          matching scene keywords (20,000 free API calls/mo)
-                                  │
-                                  ▼
-     [ 4. VIDEO COMPOSITOR: FFmpeg & Kinetic Subtitles ]
-          Dynamic multi-scene cuts (~3.5s per scene), portrait crop,
-          ducked background music, and bold kinetic animated captions
-                                  │
-                                  ▼
-     [ 5. AUTONOMOUS PUBLISHING: YouTube Data API v3 (Free) ]
-          Directly publishes to your channel with optimized title,
-          description, tags, and #Shorts categorization
+YT video automation/
+├── essay_stuff/
+│   ├── BLUEPRINT.md                 # Locked visual, pacing, and audio specifications
+│   ├── generate_essay.py            # Master CLI orchestrator (Script -> Voice -> Doodles -> Concat -> Drone)
+│   ├── script_masterpiece_engine.py # 5-Movement Gemini script generator + Curated Topic Bank
+│   ├── visual_masterpiece_engine.py # Rock-solid 1080p static doodle generator with bold banners
+│   └── nocebo_full_production.py    # Reference 60-scene production file
+├── modules/
+│   └── youtube_uploader.py          # YouTube Data API v3 publishing
+├── output/
+│   ├── essays/                      # Generated production packages (audio, frames, clips, masters)
+│   └── nocebo_full/                 # 4m 32s Nocebo master video
+├── credentials/
+│   └── credentials_vault.md         # Stored API configurations
+├── config/
+│   └── settings.py                  # Environment settings
+├── setup_youtube_auth.py            # OAuth token initialization
+├── requirements.txt                 # Clean minimal dependencies
+└── README.md                        # Documentation
 ```
-
----
-
-## 🌟 Evergreen High-RPM Niches (Won't Fade Over Time)
-
-1. **Psychology & Human Behavior / Stoicism (Default)**
-   - Examples: *"Dark Psychology Tricks in Conversation"*, *"Marcus Aurelius Stoic Rules"*, *"Signs Someone is Trying to Manipulate You"*.
-   - **Why it works**: Generational appeal, high retention, timeless interest.
-2. **Financial Literacy & High-Income Career Skills**
-   - Examples: *"3 High-Paying Skills You Can Learn in 30 Days"*, *"How Top 1% People Negotiate"*.
-   - **Why it works**: Huge YouTube CPM/RPM ($8–$20 per thousand views) and direct synergy with professional audiences.
-3. **Deep Science & Ancient Mysteries**
-   - Examples: *"The Paradox That Breaks Modern Physics"*, *"The Lost Civilization Before Egypt"*.
-   - **Why it works**: High curiosity, visually striking B-roll.
-
----
-
-## 🚀 Quickstart (Local Test)
-
-### 1. Clone & Setup Environment
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd "YT video automation"
-
-# Create virtual environment & install dependencies
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Configure API Keys
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Fill in:
-- `GEMINI_API_KEY`: Get free key from [Google AI Studio](https://aistudio.google.com).
-- `PEXELS_API_KEY`: Get free key from [Pexels API](https://www.pexels.com/api/).
-
-### 3. Generate a Test Short (Without Uploading)
-```bash
-python main.py --skip-upload --topic "The psychological trick to win any argument with silence"
-```
-Your rendered video, audio, script, and subtitles will appear inside the `output/run_<timestamp>/` directory!
-
----
-
-## 🔑 YouTube API Setup (One-Time)
-
-To enable automatic posting:
-1. Go to [Google Cloud Console](https://console.cloud.google.com).
-2. Create a project and enable the **YouTube Data API v3**.
-3. Go to **APIs & Services > Credentials > Create Credentials > OAuth client ID**.
-4. Choose Application Type: **Desktop App**.
-5. Download the credentials file and save it as `client_secret.json` in this project folder.
-6. Run the authentication script:
-   ```bash
-   python setup_youtube_auth.py
-   ```
-   A browser window will open. Sign in to your YouTube channel and grant permission. This will generate your permanent `oauth_token.json`.
-
----
-
-## ☁️ 24/7 Cloud Autopilot (GitHub Actions)
-
-You don't need your computer running! The GitHub Actions workflow executes on GitHub's free multi-core cloud servers on a schedule.
-
-### Step 1: Push Project to GitHub
-```bash
-git init
-git add .
-git commit -m "feat: complete zero-cost YouTube Shorts automation engine"
-git branch -M main
-git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-git push -u origin main
-```
-
-### Step 2: Add GitHub Repository Secrets
-Go to your repository on GitHub: **Settings > Secrets and variables > Actions > New repository secret**.
-
-Add the following 4 secrets:
-1. `GEMINI_API_KEY`: Your Gemini API key.
-2. `PEXELS_API_KEY`: Your Pexels API key.
-3. `YOUTUBE_CLIENT_SECRET_JSON`: The entire text contents of your `client_secret.json`.
-4. `YOUTUBE_OAUTH_TOKEN_JSON`: The entire text contents of your generated `oauth_token.json`.
-
-### Step 3: Enjoy Automated Posting!
-- **Scheduled**: Runs automatically every day at 14:00 UTC (customizable in `.github/workflows/generate_and_post.yml`).
-- **Manual Trigger**: Go to the **Actions** tab on GitHub, click **YouTube Shorts Auto-Pilot Pipeline**, and click **Run workflow** anytime to generate and post on demand!

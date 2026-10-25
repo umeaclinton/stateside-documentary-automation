@@ -18,6 +18,7 @@ token.pickle
 credentials.json
 credentials/
 *.credentials*
+deploy_to_github.py
 
 # Generated video, audio & temporary media
 output/

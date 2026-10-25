@@ -21,8 +21,10 @@ FISH_AUDIO_VOICE_ID = os.getenv("FISH_AUDIO_VOICE_ID", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")
 
-# Content Niche & Configuration
+# Content Niche & Channel Identity
 CONTENT_NICHE = os.getenv("CONTENT_NICHE", "Psychology & Human Behavior")
+CHANNEL_NAME = os.getenv("CHANNEL_NAME", "Stateside")
+CHANNEL_HANDLE = os.getenv("CHANNEL_HANDLE", "@50kstateside")
 
 # Microsoft Edge-TTS Voice Configuration
 VOICE_NAME = os.getenv("VOICE_NAME", "en-US-ChristopherNeural")
