@@ -5,6 +5,7 @@ import re
 import math
 import asyncio
 import subprocess
+import shutil
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import requests
@@ -35,8 +36,22 @@ from essay_stuff.script_masterpiece_engine import (
 from essay_stuff.visual_masterpiece_engine import render_masterpiece_frame
 from essay_stuff.thumbnail_engine import generate_zenn_style_thumbnail
 
-FFMPEG = "C:/Users/USER/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.2-full_build/bin/ffmpeg.exe"
-FFPROBE = "C:/Users/USER/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.2-full_build/bin/ffprobe.exe"
+def _resolve_binary(name: str, fallback_windows: str) -> str:
+    found = shutil.which(name)
+    if found:
+        return found
+    if Path(fallback_windows).exists():
+        return fallback_windows
+    return name
+
+FFMPEG = _resolve_binary(
+    "ffmpeg",
+    "C:/Users/USER/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.2-full_build/bin/ffmpeg.exe"
+)
+FFPROBE = _resolve_binary(
+    "ffprobe",
+    "C:/Users/USER/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.2-full_build/bin/ffprobe.exe"
+)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", getattr(settings, "ELEVENLABS_API_KEY", ""))
 LOCKED_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb" # George (ElevenLabs premade narrator)
 

@@ -5,18 +5,29 @@ from typing import Dict, Any, List, Tuple
 from PIL import Image, ImageDraw, ImageFont
 
 def get_font(size: int, bold: bool = True):
-    font_names = [
-        "arialbd.ttf" if bold else "arial.ttf",
-        "comicbd.ttf" if bold else "comic.ttf",
-        "calibrib.ttf" if bold else "calibri.ttf",
-        "segoeuib.ttf" if bold else "segoeui.ttf",
+    font_candidates = [
+        # Linux standard paths
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        # Windows standard paths
+        f"C:/Windows/Fonts/{'arialbd.ttf' if bold else 'arial.ttf'}",
+        f"C:/Windows/Fonts/{'comicbd.ttf' if bold else 'comic.ttf'}",
+        f"C:/Windows/Fonts/{'calibrib.ttf' if bold else 'calibri.ttf'}",
+        f"C:/Windows/Fonts/{'segoeuib.ttf' if bold else 'segoeui.ttf'}",
+        # Fallback names
+        "LiberationSans-Bold.ttf" if bold else "LiberationSans-Regular.ttf",
+        "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
+        "arial.ttf"
     ]
-    for fn in font_names:
+    for fn in font_candidates:
         try:
-            return ImageFont.truetype(f"C:/Windows/Fonts/{fn}", size)
+            return ImageFont.truetype(fn, size)
         except Exception:
             continue
-    return ImageFont.load_default()
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
 
 def draw_wobbly_line(draw: ImageDraw.ImageDraw, points: List[Tuple[float, float]], fill="black", width=6, roughness=2.2):
     for i in range(len(points) - 1):

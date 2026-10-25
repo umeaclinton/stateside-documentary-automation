@@ -9,9 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 def get_thumbnail_font(size: int, font_name: str = "impact.ttf") -> ImageFont.ImageFont:
     paths = [
+        # Linux standard paths
+        Path("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        # Windows standard paths
         Path(f"C:/Windows/Fonts/{font_name}"),
-        Path(f"C:/Windows/Fonts/arialbd.ttf"),
-        Path(f"C:/Windows/Fonts/comicbd.ttf")
+        Path("C:/Windows/Fonts/arialbd.ttf"),
+        Path("C:/Windows/Fonts/comicbd.ttf")
     ]
     for p in paths:
         if p.exists():
@@ -19,7 +23,15 @@ def get_thumbnail_font(size: int, font_name: str = "impact.ttf") -> ImageFont.Im
                 return ImageFont.truetype(str(p), size)
             except Exception:
                 continue
-    return ImageFont.load_default()
+    for fallback in ["LiberationSans-Bold.ttf", "DejaVuSans-Bold.ttf", "impact.ttf", "arialbd.ttf"]:
+        try:
+            return ImageFont.truetype(fallback, size)
+        except Exception:
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
 
 def draw_stroked_text(
     draw: ImageDraw.ImageDraw,
