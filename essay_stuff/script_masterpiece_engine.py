@@ -1,6 +1,8 @@
 import json
 import logging
 import sys
+import re
+import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -272,6 +274,20 @@ CURATED_TOPIC_BANK = {
     }
 }
 
+def _clean_and_parse_json(raw_text: str) -> Dict[str, Any]:
+    text = raw_text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        m = re.search(r"(\{.*\})", text, re.DOTALL)
+        if m:
+            return json.loads(m.group(1))
+        raise
+
+
 def generate_masterpiece_script(
     topic_key_or_prompt: str,
     target_scenes: int = 60
@@ -305,30 +321,38 @@ Do NOT mention any YouTuber or creator name. Return ONLY valid JSON matching the
     models_to_try = [
         "gemini-3.1-flash-lite",
         "gemini-flash-lite-latest",
-        "gemini-2.5-flash-lite",
-        "gemini-1.5-flash-latest"
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-3.8-flash"
     ]
     
     last_err = None
     for model_name in models_to_try:
-        try:
-            logger.info(f"Generating masterpiece script with {model_name}...")
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=dict(
-                    system_instruction=ZENN_MASTERPIECE_SYSTEM_PROMPT,
-                    temperature=0.75,
-                    response_mime_type="application/json"
+        for attempt in range(1, 4):
+            try:
+                logger.info(f"Generating masterpiece script with {model_name} (attempt {attempt}/3)...")
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=dict(
+                        system_instruction=ZENN_MASTERPIECE_SYSTEM_PROMPT,
+                        temperature=0.7,
+                        response_mime_type="application/json"
+                    )
                 )
-            )
-            raw_text = response.text.strip()
-            data = json.loads(raw_text)
-            logger.info(f"SUCCESS! Generated '{data.get('title')}' with {len(data.get('scenes', []))} scenes.")
-            return data
-        except Exception as e:
-            last_err = e
-            logger.warning(f"Model {model_name} failed: {e}. Trying next...")
+                raw_text = response.text.strip()
+                data = _clean_and_parse_json(raw_text)
+                if not data.get("scenes"):
+                    raise ValueError("Model returned valid JSON but without 'scenes' array")
+                logger.info(f"SUCCESS! Generated '{data.get('title')}' with {len(data.get('scenes', []))} scenes.")
+                return data
+            except Exception as e:
+                last_err = e
+                err_str = str(e)
+                logger.warning(f"Model {model_name} (attempt {attempt}) encountered: {e}")
+                if "404" in err_str:
+                    break
+                time.sleep(3 * attempt)
             
     raise RuntimeError(f"All Gemini models failed to generate masterpiece script: {last_err}")
 
@@ -378,20 +402,24 @@ Return ONLY a short JSON object:
   "study": "Exact citation with author, year, journal, and specific statistical finding"
 }}
 """
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.1-flash-lite",
-            contents=discovery_prompt,
-            config=dict(temperature=0.8, response_mime_type="application/json")
-        )
-        data = json.loads(response.text.strip())
-        slug = data.get("topic_slug", "new_discovery")
-        CURATED_TOPIC_BANK[slug] = data
-        logger.info(f"Discovered new empirical topic: '{data.get('title')}' ({slug})")
-        return slug
-    except Exception as e:
-        logger.warning(f"Autonomous discovery fallback triggered: {e}")
-        return "split_brain"
+    models_for_discovery = ["gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-3.5-flash-lite"]
+    for m in models_for_discovery:
+        try:
+            response = client.models.generate_content(
+                model=m,
+                contents=discovery_prompt,
+                config=dict(temperature=0.8, response_mime_type="application/json")
+            )
+            data = _clean_and_parse_json(response.text.strip())
+            slug = data.get("topic_slug", "new_discovery")
+            CURATED_TOPIC_BANK[slug] = data
+            logger.info(f"Discovered new empirical topic: '{data.get('title')}' ({slug})")
+            return slug
+        except Exception as e:
+            logger.warning(f"Discovery model {m} failed: {e}")
+            continue
+    logger.warning("Autonomous discovery fallback triggered, defaulting to split_brain")
+    return "split_brain"
 
 
 def log_topic_produced(topic_key: str, history_file: Optional[Path] = None):
