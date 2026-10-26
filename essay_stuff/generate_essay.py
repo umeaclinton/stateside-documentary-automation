@@ -405,13 +405,14 @@ ____________________
     print("=" * 65 + "\n")
 
     # -------------------------------------------------------------------------
-    # Step 7: Optional YouTube Upload
+    # Step 7: Optional YouTube Long-Form Upload
     # -------------------------------------------------------------------------
+    published_long_url = None
     if upload:
         from modules.youtube_uploader import upload_video_essay_to_youtube
         client_secrets = os.getenv("YOUTUBE_CLIENT_SECRETS_FILE", "client_secret.json")
         token_file = os.getenv("YOUTUBE_TOKEN_FILE", "oauth_token.json")
-        upload_video_essay_to_youtube(
+        upload_res = upload_video_essay_to_youtube(
             video_path=master_video,
             title=yt_metadata["title"],
             description=yt_metadata["description"],
@@ -422,9 +423,29 @@ ____________________
             privacy_status=os.getenv("YOUTUBE_PRIVACY_STATUS", "public"),
             category_id="28"
         )
-    
+        if upload_res:
+            published_long_url = upload_res.get("url")
+            yt_metadata["url"] = published_long_url
+            with open(work_dir / "youtube_metadata.json", "w", encoding="utf-8") as f:
+                json.dump(yt_metadata, f, indent=2, ensure_ascii=False)
+
     # -------------------------------------------------------------------------
-    # Step 8: Log topic to prevent duplicate posting
+    # Step 8: Autonomous YouTube Shorts Teaser Funnel
+    # -------------------------------------------------------------------------
+    try:
+        from essay_stuff.shorts_clipper import generate_and_publish_short
+        print("\n[Step 8/8] Generating vertical 9:16 YouTube Short teaser funnel...")
+        generate_and_publish_short(
+            work_dir=work_dir,
+            script_data=script_data,
+            long_video_url=published_long_url,
+            upload=upload
+        )
+    except Exception as e:
+        print(f"  [Warning] Shorts auto-clipper note: {e}")
+
+    # -------------------------------------------------------------------------
+    # Step 9: Log topic to prevent duplicate posting
     # -------------------------------------------------------------------------
     log_topic_produced(topic)
     
@@ -434,7 +455,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="End-to-End Video Essay Production")
     parser.add_argument("--topic", type=str, default="auto", help="Topic key, custom prompt, or 'auto'")
-    parser.add_argument("--scenes", type=int, default=55, help="Target scene count")
+    parser.add_argument("--scenes", type=int, default=80, help="Target scene count (default 80 for 7-10 min)")
     parser.add_argument("--skip-script", action="store_true", help="Use existing script file if available")
     parser.add_argument("--allow-elevenlabs", action="store_true", default=True, help="Use ElevenLabs voice")
     parser.add_argument("--upload", action="store_true", help="Automatically upload completed video to YouTube")

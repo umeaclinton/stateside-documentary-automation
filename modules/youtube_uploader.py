@@ -20,7 +20,7 @@ from googleapiclient.http import MediaFileUpload
 
 logger = logging.getLogger(__name__)
 
-# Scopes required to upload videos and set thumbnails
+# Scopes required to upload videos, set thumbnails, and post comments
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube"
@@ -84,7 +84,7 @@ def upload_video_essay_to_youtube(
     category_id: str = "28"  # 28 = Science & Technology, 27 = Education
 ) -> Dict:
     """
-    Uploads a long-form 16:9 documentary video essay to YouTube with custom thumbnail and tags.
+    Uploads a video essay (long-form or Short) to YouTube with custom metadata.
     """
     if not video_path.exists():
         raise FileNotFoundError(f"Video file to upload does not exist: {video_path}")
@@ -107,7 +107,7 @@ def upload_video_essay_to_youtube(
     media = MediaFileUpload(
         str(video_path),
         mimetype="video/mp4",
-        chunksize=1024 * 1024 * 8, # 8MB chunks for faster long-form upload
+        chunksize=1024 * 1024 * 8, # 8MB chunks
         resumable=True
     )
 
@@ -129,7 +129,7 @@ def upload_video_essay_to_youtube(
     video_url = f"https://www.youtube.com/watch?v={video_id}"
     print(f"[Success] Video published successfully! URL: {video_url}")
 
-    # Set custom high-CTR thumbnail if provided
+    # Set custom thumbnail if provided (typically for long-form)
     if thumbnail_path and thumbnail_path.exists():
         try:
             print(f"[YouTube Upload] Uploading custom cover thumbnail: {thumbnail_path.name}...")
@@ -148,3 +148,35 @@ def upload_video_essay_to_youtube(
         "title": title,
         "status": privacy_status
     }
+
+
+def post_video_comment(
+    video_id: str,
+    comment_text: str,
+    client_secrets_file: str,
+    token_file: str
+) -> Optional[Dict]:
+    """
+    Posts an author top-level comment on a YouTube video (ideal for directing viewers to the full long-form documentary).
+    """
+    try:
+        youtube = get_authenticated_service(client_secrets_file, token_file)
+        body = {
+            "snippet": {
+                "videoId": video_id,
+                "topLevelComment": {
+                    "snippet": {
+                        "textOriginal": comment_text
+                    }
+                }
+            }
+        }
+        response = youtube.commentThreads().insert(
+            part="snippet",
+            body=body
+        ).execute()
+        print(f"[YouTube Comment] Successfully posted author comment on video: {video_id}")
+        return response
+    except Exception as e:
+        print(f"[YouTube Comment] Note: Could not post comment on {video_id}: {e}")
+        return None
