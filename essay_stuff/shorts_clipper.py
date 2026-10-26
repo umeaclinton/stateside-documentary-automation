@@ -131,7 +131,7 @@ def render_short_scene_frame(
         try:
             im_frame = Image.open(source_frame_path)
             # Crop center (x: 200..1720, y: 230..980)
-            cropped = im_frame.crop((200, 230, 1720, 980))
+            cropped = im_frame.crop((200, 310, 1720, 950))
             resized = cropped.resize((960, 720), Image.Resampling.LANCZOS)
             bg.paste(resized, (60, 290))
         except Exception as e:
