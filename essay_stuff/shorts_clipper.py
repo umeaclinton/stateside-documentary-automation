@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from PIL import Image, ImageDraw, ImageFont
 
+# Ensure project root is in sys.path
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 # Force UTF-8 on Windows
 if sys.platform == "win32":
     try:
