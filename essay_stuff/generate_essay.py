@@ -6,6 +6,7 @@ import math
 import asyncio
 import subprocess
 import shutil
+import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import requests
@@ -52,9 +53,12 @@ FFPROBE = _resolve_binary(
     "ffprobe",
     "C:/Users/USER/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.2-full_build/bin/ffprobe.exe"
 )
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", getattr(settings, "ELEVENLABS_API_KEY", ""))
-LOCKED_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb" # George (ElevenLabs premade narrator)
-_ELEVENLABS_QUOTA_EXHAUSTED = False
+
+# -----------------------------------------------------------------------------
+# Studio Voice Engine: Jenny (100% Free Neural Edge-TTS)
+# -----------------------------------------------------------------------------
+VOICE_NAME = "en-US-JennyNeural"
+VOICE_RATE = "-2%"
 
 def slugify(text: str) -> str:
     text = text.lower()
@@ -63,58 +67,31 @@ def slugify(text: str) -> str:
 
 async def _synthesize_edge_tts(text: str, out_path: Path):
     import edge_tts
-    # en-US-ChristopherNeural has a deep, warm documentary resonance
-    communicate = edge_tts.Communicate(text, "en-US-ChristopherNeural", rate="-3%")
+    communicate = edge_tts.Communicate(text, VOICE_NAME, rate=VOICE_RATE)
     await communicate.save(str(out_path))
 
-def synthesize_scene_voice(text: str, out_path: Path, use_elevenlabs: bool = True) -> bool:
+def synthesize_scene_voice(text: str, out_path: Path, max_retries: int = 3, **kwargs) -> bool:
     """
-    Synthesizes speech using ElevenLabs George, falling back seamlessly to Edge-TTS.
+    Synthesizes speech using Microsoft Studio Jenny (en-US-JennyNeural).
+    100% Free, zero quota limits, zero monthly charges, high-retention documentary cadence.
     """
-    global _ELEVENLABS_QUOTA_EXHAUSTED
     if out_path.exists() and out_path.stat().st_size > 500:
         return True # Cached
         
     out_path.parent.mkdir(parents=True, exist_ok=True)
     
-    if use_elevenlabs and ELEVENLABS_API_KEY and not _ELEVENLABS_QUOTA_EXHAUSTED:
-        url = f"https://api.elevenlabs.io/v1/text-to-speech/{LOCKED_VOICE_ID}"
-        headers = {
-            "xi-api-key": ELEVENLABS_API_KEY,
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "text": text,
-            "model_id": "eleven_turbo_v2_5",
-            "voice_settings": {
-                "stability": 0.55,
-                "similarity_boost": 0.85,
-                "style": 0.15,
-                "use_speaker_boost": True
-            }
-        }
+    for attempt in range(1, max_retries + 1):
         try:
-            r = requests.post(url, json=payload, headers=headers, timeout=15)
-            if r.status_code == 200:
-                with open(out_path, "wb") as f:
-                    f.write(r.content)
+            asyncio.run(_synthesize_edge_tts(text, out_path))
+            if out_path.exists() and out_path.stat().st_size > 500:
                 return True
-            else:
-                if "quota_exceeded" in r.text or r.status_code in (401, 429):
-                    _ELEVENLABS_QUOTA_EXHAUSTED = True
-                    print(f"    [ElevenLabs Quota Exceeded] Switching to Studio Edge-TTS for all remaining scenes.")
-                else:
-                    print(f"    [ElevenLabs Warning] HTTP {r.status_code}: {r.text[:120]}. Falling back to Edge-TTS.")
         except Exception as e:
-            print(f"    [ElevenLabs Warning] Exception: {e}. Falling back to Edge-TTS.")
+            if attempt == max_retries:
+                print(f"    [Jenny Voice Error] Failed for '{text[:40]}...': {e}")
+                return False
+            time.sleep(1.0 * attempt)
             
-    # Fallback to high-quality Edge-TTS
-    try:
-        asyncio.run(_synthesize_edge_tts(text, out_path))
-        return True
-    except Exception as e:
-        print(f"    [Edge-TTS Error] Failed: {e}")
-        return False
+    return False
 
 def get_audio_duration(audio_path: Path) -> float:
     cmd = [
@@ -135,7 +112,7 @@ def generate_full_video_essay(
     topic: str,
     target_scenes: int = 80,
     skip_script: bool = False,
-    allow_elevenlabs: bool = True,
+    allow_elevenlabs: bool = False,
     upload: bool = False
 ) -> Path:
     slug = slugify(topic)
@@ -187,9 +164,9 @@ def generate_full_video_essay(
     clips_dir.mkdir(exist_ok=True)
     
     # -------------------------------------------------------------------------
-    # Step 2: Voiceover Synthesis (ElevenLabs George / Edge-TTS Fallback)
+    # Step 2: Voiceover Synthesis (Studio Jenny - 100% Free Neural Voice)
     # -------------------------------------------------------------------------
-    print(f"\n[Step 2/5] Synthesizing Voiceover for {len(scenes)} scenes...")
+    print(f"\n[Step 2/5] Synthesizing Voiceover for {len(scenes)} scenes with Jenny (en-US-JennyNeural)...")
     scene_durations = []
     cumulative_time = 0.0
     timestamps_chapters = []
@@ -199,7 +176,7 @@ def generate_full_video_essay(
         narration = s.get("narration", "")
         aud_file = audio_dir / f"scene_{sid:03d}.mp3"
         
-        synthesize_scene_voice(narration, aud_file, use_elevenlabs=allow_elevenlabs)
+        synthesize_scene_voice(narration, aud_file)
         dur = get_audio_duration(aud_file)
         scene_durations.append(dur)
         
@@ -308,7 +285,6 @@ def generate_full_video_essay(
     # -------------------------------------------------------------------------
     # Step 6: Generate YouTube Metadata Package & Cover Thumbnail
     # -------------------------------------------------------------------------
-    # Look up enriched metadata from curated bank or script data
     curated_info = CURATED_TOPIC_BANK.get(topic.lower(), {})
     hook_lines_list = script_data.get("hook_summary_lines") or curated_info.get("hook_summary_lines") or [
         "A fascinating phenomenon unfolds when expectations collide with biology.",
@@ -328,7 +304,6 @@ def generate_full_video_essay(
     covers_text = "\n".join([f"- {item}" for item in what_covers_list])
     takeaway = script_data.get("philosophical_takeaway") or curated_info.get("philosophical_takeaway") or "Knowing that is where the choice starts."
     
-    # Formatted sources with APA citations and plain English explanations
     sources_detailed = script_data.get("sources_detailed") or curated_info.get("sources_detailed") or []
     sources_blocks = []
     for s_entry in sources_detailed:
@@ -457,7 +432,6 @@ if __name__ == "__main__":
     parser.add_argument("--topic", type=str, default="auto", help="Topic key, custom prompt, or 'auto'")
     parser.add_argument("--scenes", type=int, default=80, help="Target scene count (default 80 for 7-10 min)")
     parser.add_argument("--skip-script", action="store_true", help="Use existing script file if available")
-    parser.add_argument("--allow-elevenlabs", action="store_true", default=True, help="Use ElevenLabs voice")
     parser.add_argument("--upload", action="store_true", help="Automatically upload completed video to YouTube")
     args = parser.parse_args()
     
@@ -470,6 +444,5 @@ if __name__ == "__main__":
         topic=selected_topic,
         target_scenes=args.scenes,
         skip_script=args.skip_script,
-        allow_elevenlabs=args.allow_elevenlabs,
         upload=args.upload
     )

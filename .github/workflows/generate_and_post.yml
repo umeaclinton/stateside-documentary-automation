@@ -69,7 +69,6 @@ jobs:
       - name: Run Masterpiece Video Essay Production & Publishing
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           CHANNEL_NAME: "Stateside"
           CHANNEL_HANDLE: "@50kstateside"
         run: |

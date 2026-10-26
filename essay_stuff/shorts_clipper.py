@@ -74,18 +74,18 @@ def synthesize_outro_audio(text: str, out_path: Path):
     # Try importing voice engine from generate_essay
     try:
         from essay_stuff.generate_essay import synthesize_scene_voice
-        success = synthesize_scene_voice(text, out_path, use_elevenlabs=True)
+        success = synthesize_scene_voice(text, out_path)
         if success and out_path.exists() and out_path.stat().st_size > 1000:
             return
     except Exception:
         pass
 
-    # Fallback to Edge-TTS or tone
+    # Fallback to Edge-TTS Jenny or tone
     try:
         import asyncio
         import edge_tts
         async def _speak():
-            comm = edge_tts.Communicate(text, "en-US-ChristopherNeural")
+            comm = edge_tts.Communicate(text, "en-US-JennyNeural", rate="-2%")
             await comm.save(str(out_path))
         asyncio.run(_speak())
     except Exception as e:
